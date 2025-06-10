@@ -2,10 +2,14 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import prisma from "./prismaClient.js";
+import prisma from "./prisma/client.js"; // Import Prisma client
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import hostelRoutes from "./routes/hostelRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -17,6 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/hostels", hostelRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 // Test Prisma DB route
 app.get("/test-db", async (req, res) => {
