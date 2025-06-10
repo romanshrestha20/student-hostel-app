@@ -1,104 +1,151 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
-
+// datasource.db
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model AdminAction {
-  id         Int        @id @default(autoincrement())
-  adminId    Int?
-  actionType ActionType
-  targetType TargetType
-  targetId   Int
-  reason     String?
-  createdAt  DateTime   @default(now())
-  User       User?      @relation(fields: [adminId], references: [id])
+generator client {
+  provider = "prisma-client-js"
 }
 
-model Favorite {
-  id        Int      @id @default(autoincrement())
-  studentId Int
-  hostelId  Int
-  createdAt DateTime @default(now())
-  Hostel    Hostel   @relation(fields: [hostelId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+// ======================
+// CORE MODELS
+// ======================
 
-  @@unique([studentId, hostelId])
+model User {
+ id             String    @id @default(uuid())
+  name           String
+  email          String    @unique
+  hashedPassword String
+  role           Role      @default(student)
+  createdAt      DateTime  @default(now())  // Add this line
+  updatedAt      DateTime  @updatedAt       // Optional: add if you want tracking
+  // Relations
+  favorites      Favorite[]
+  inquiries      Inquiry[]
+  hostels        Hostel[]      @relation("HostelOwner")
+  adminActions   AdminAction[]  @relation("AdminActions")
+  replies Reply[]  @relation("UserReplies")
+  @@index([email])
+  @@index([role])
 }
 
 model Hostel {
-  id          Int          @id @default(autoincrement())
-  ownerId     Int
-  name        String
-  description String?
-  address     String
-  locationLat Float?
-  locationLng Float?
-  amenities   String[]
-  status      HostelStatus @default(pending)
-  createdAt   DateTime     @default(now())
-  Favorite    Favorite[]
-  User        User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  Inquiry     Inquiry[]
-  Photo       Photo[]
-  Room        Room[]
+  id            String        @id @default(uuid())
+  name          String
+  description   String
+  address       String
+  locationLat   Float
+  locationLng   Float
+  contactNumber String        // ✅ Add this line
+  amenities     String[]
+  status        HostelStatus  @default(pending)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  ownerId       String
+  owner         User          @relation("HostelOwner", fields: [ownerId], references: [id])
+  photos        Photo[]
+  rooms         Room[]
+  favorites     Favorite[]
+  inquiries     Inquiry[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([locationLat, locationLng])
+}
+
+
+// ======================
+// FEATURE MODELS
+// ======================
+
+model Room {
+  id         String    @id @default(uuid())
+  roomType   RoomType  
+  price      Float
+  capacity   Int
+  available  Boolean   @default(true)
+  amenities  String[]
+  hostelId   String
+  hostel     Hostel    @relation(fields: [hostelId], references: [id])
+  photos     Photo[]
+  favorites  Favorite[]
+
+  @@index([hostelId])
+  @@index([price])
+  @@index([available])
+}
+
+
+model Photo {
+  id        String   @id @default(uuid())
+  url       String
+  isPrimary Boolean  @default(false)
+  hostelId  String?
+  hostel    Hostel?  @relation(fields: [hostelId], references: [id])
+  roomId    String?
+  room      Room?    @relation(fields: [roomId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  hostelId  String
+  hostel    Hostel   @relation(fields: [hostelId], references: [id])
+  roomId    String?
+  room      Room?    @relation(fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, hostelId, roomId])
 }
 
 model Inquiry {
-  id        Int      @id @default(autoincrement())
-  studentId Int
-  hostelId  Int
+  id        String   @id @default(uuid())
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  Hostel    Hostel   @relation(fields: [hostelId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Relations
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  hostelId  String
+  hostel    Hostel   @relation(fields: [hostelId], references: [id])
+  replies   Reply[]
+
+  @@index([studentId])
+  @@index([hostelId])
+  @@index([isRead])
 }
 
-model Photo {
-  id       Int    @id @default(autoincrement())
-  hostelId Int
-  url      String
-  Hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+model Reply {
+  id         String   @id @default(uuid())
+  message    String
+  createdAt  DateTime @default(now())
+  inquiryId  String
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id])
+  repliedById String
+   repliedBy User @relation("UserReplies", fields: [repliedById], references: [id])
 }
 
-model Room {
-  id           Int     @id @default(autoincrement())
-  hostelId     Int
-  roomType     String
-  price        Decimal @db.Decimal(10, 2)
-  availability Boolean @default(true)
-  Hostel       Hostel  @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+model AdminAction {
+  id         String     @id @default(uuid())
+  actionType ActionType
+  targetType TargetType
+  targetId   String
+  reason     String?
+  createdAt  DateTime   @default(now())
+
+  // Relations
+  adminId    String?
+  admin      User?      @relation("AdminActions", fields: [adminId], references: [id])
 }
 
-model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String        @unique
-  passwordHash String
-  role         Role
-  createdAt    DateTime      @default(now())
-  AdminAction  AdminAction[]
-  Favorite     Favorite[]
-  Hostel       Hostel[]
-  Inquiry      Inquiry[]
-}
-
-enum ActionType {
-  approve
-  reject
-  remove
-}
-
-enum HostelStatus {
-  pending
-  approved
-  rejected
-}
+// ======================
+// ENUMS
+// ======================
 
 enum Role {
   student
@@ -106,8 +153,32 @@ enum Role {
   admin
 }
 
+enum HostelStatus {
+  pending
+  approved
+  rejected
+  suspended
+}
+
+enum RoomType {
+  single
+  double
+  dormitory
+  apartment
+}
+
+enum ActionType {
+  approve_hostel
+  reject_hostel
+  suspend_hostel
+  verify_user
+  suspend_user
+  delete_content
+}
+
 enum TargetType {
   hostel
   user
   photo
+  review
 }
