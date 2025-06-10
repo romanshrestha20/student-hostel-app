@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../app.js";
-import prisma from "../prismaClient.js";
+import prisma from "../prisma/client.js";
 import { v4 as uuidv4 } from "uuid";
 
 describe("Auth routes", () => {
