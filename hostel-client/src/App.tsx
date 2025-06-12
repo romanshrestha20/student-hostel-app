@@ -1,9 +1,9 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./components/Dashboard";
-
+import ProtectedRoute from "./components/ProtectedRoute";
+import Unauthorized from "./pages/Unauthorized";
+import AuthPage from "./pages/AuthPage";
 function App() {
   return (
     <BrowserRouter>
@@ -12,9 +12,18 @@ function App() {
           path="/"
           element={<h1>Welcome to the Hostel Management System</h1>}
         />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Protected routes */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/auth" element={<AuthPage />} />
         {/* other routes */}
       </Routes>
     </BrowserRouter>

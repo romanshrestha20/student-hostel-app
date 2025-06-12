@@ -43,20 +43,21 @@ export const setAuthToken = (token: string | null) => {
 /**
  * POST /auth/login
  */
-export const login = async (
-  { email, password }: LoginPayload
-): Promise<AuthResponse> => {
+export const login = async ({ email, password }: LoginPayload): Promise<AuthResponse> => {
   const res = await api.post<AuthResponse>('/auth/login', { email, password });
   setAuthToken(res.data.token);
   return res.data;
 };
 
 /**
- * POST /users   (createUser)
+ * POST /auth/register
  */
-export const register = async (
-  { name, email, password, role = 'student' }: RegisterPayload
-): Promise<AuthResponse> => {
+export const register = async ({
+  name,
+  email,
+  password,
+  role = 'student',
+}: RegisterPayload): Promise<AuthResponse> => {
   const res = await api.post<AuthResponse>('/auth/register', {
     name,
     email,
@@ -67,7 +68,6 @@ export const register = async (
   return res.data;
 };
 
-
 /**
  * Simple logout helper
  */
@@ -76,10 +76,3 @@ export const logout = () => {
 };
 
 
-
-// fetch current user
-
-export const fetchCurrentUser = async (): Promise<User> => {
-  const res = await api.get<User>('/auth/me');
-  return res.data;
-};
