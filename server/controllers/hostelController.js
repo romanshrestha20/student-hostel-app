@@ -274,3 +274,46 @@ export const deleteHostel = async (req, res) => {
     res.status(500).json({ error: "Failed to delete hostel" });
   }
 };
+
+
+// Search hostels by name
+export const searchHostels = async (req, res) => {
+  try {
+    const {query} = req.query;
+    if (!query || query.trim() === "") {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+    const hostels = await prisma.hostel.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: 'insensitive', // Case-insensitive search
+        },
+      },
+      select: {
+        id: true,
+        ownerId: true,
+        name: true,
+        description: true,
+        address: true,
+        locationLat: true,
+        locationLng: true,
+        amenities: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (hostels.length === 0) {
+      return res.status(404).json({ message: `No hostels found for query: ${query}` });
+    }
+    res.status(200).json({
+      message: "Hostels found",
+      hostels,
+    }); 
+  }
+  catch (error) {
+    console.error("Error searching hostels:", error);
+    res.status(500).json({ error: "Failed to search hostels" });
+  }
+}

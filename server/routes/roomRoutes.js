@@ -15,7 +15,10 @@ router
   .route("/:id")
   .get(getRoomById)
   .put( updateRoom)
-  .delete( deleteRoom);
+  .delete(deleteRoom);
+// search rooms by hostelId
+
+router.use(protect); 
 
 export default router;
 //         return res.status(400).json({ error: "All fields are required" })
