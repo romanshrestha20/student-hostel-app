@@ -5,20 +5,17 @@ import {
   getRoomById,
   updateRoom,
   deleteRoom,
+  getRoomsByRoomType,
 } from "../controllers/roomController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getAllRooms).post( createRoom);
-router
-  .route("/:id")
-  .get(getRoomById)
-  .put( updateRoom)
-  .delete(deleteRoom);
-// search rooms by hostelId
 
-router.use(protect); 
+router.route("/").get(getAllRooms).post(createRoom);
+// get all rooms by room type
+router.route("/type").get(getRoomsByRoomType);
+
+router.route("/:id").get(getRoomById).put(updateRoom).delete(deleteRoom);
 
 export default router;
-//         return res.status(400).json({ error: "All fields are required" })

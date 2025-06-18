@@ -1,41 +1,41 @@
 import prisma from "../prisma/client.js";
+import { validateRoomData, validateUpdateRoomData } from "../middlewares/validiators.js";
 
-// Utility: Validate required fields for room creation/update
-const validateRoomData = (data) => {
-  const { hostelId, roomType, price, capacity } = data;
-  if (
-    !hostelId ||
-    !roomType ||
-    price === undefined ||
-    isNaN(price) ||
-    capacity === undefined ||
-    isNaN(capacity)
-  ) {
-    return false;
-  }
-  return true;
-};
-
-// GET /rooms - Get all rooms
+// GET /rooms - Get all rooms with pagination
 export const getAllRooms = async (req, res) => {
   try {
-    const rooms = await prisma.room.findMany({
-      select: {
-        id: true,
-        roomType: true,
-        price: true,
-        capacity: true,
-        available: true,
-        amenities: true,
-        hostelId: true,
-        hostel: true,
-        photos: true,
-        favorites: true,
-      },
-    });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [rooms, total] = await Promise.all([
+      prisma.room.findMany({
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          roomType: true,
+          price: true,
+          capacity: true,
+          available: true,
+          amenities: true,
+          hostelId: true,
+          hostel: true,
+          photos: true,
+          favorites: true,
+        },
+      }),
+      prisma.room.count(),
+    ]);
 
     res.status(200).json({
       message: "Rooms fetched successfully",
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
       rooms,
     });
   } catch (error) {
@@ -44,13 +44,94 @@ export const getAllRooms = async (req, res) => {
   }
 };
 
-// GET /rooms/:id - Get room by ID
+// GET /rooms/type?roomType=X - Get rooms by room type
+export const getRoomsByRoomType = async (req, res) => {
+  try {
+    const { roomType } = req.query;
+
+    if (!roomType) {
+      return res.status(400).json({ error: "Room type is required" });
+    }
+
+    const rooms = await prisma.room.findMany({
+      where: { roomType },
+      select: {
+        id: true,
+        hostelId: true,
+        roomType: true,
+        price: true,
+        capacity: true,
+        available: true,
+        amenities: true,
+        photos: true,
+      },
+    });
+
+    if (rooms.length === 0) {
+      return res.status(404).json({ error: "No rooms found for this room type" });
+    }
+
+    res.status(200).json({
+      message: "Rooms fetched successfully",
+      rooms,
+    });
+  } catch (error) {
+    console.error("Error fetching rooms by type:", error);
+    res.status(500).json({ error: "Failed to fetch rooms by type" });
+  }
+};
+
+// GET /rooms/hostel/:hostelId - Get rooms by hostel
+export const getAllRoomsByHostel = async (req, res) => {
+  try {
+    const { hostelId } = req.params;
+
+    const rooms = await prisma.room.findMany({
+      where: { hostelId },
+      select: {
+        id: true,
+        roomType: true,
+        price: true,
+        capacity: true,
+        available: true,
+        amenities: true,
+        photos: true,
+        hostel: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            locationLat: true,
+            locationLng: true,
+            contactNumber: true,
+            amenities: true,
+          },
+        },
+        favorites: true,
+      },
+    });
+
+    if (rooms.length === 0) {
+      return res.status(404).json({ error: "No rooms found for this hostel" });
+    }
+
+    res.status(200).json({
+      message: "Rooms fetched successfully",
+      rooms,
+    });
+  } catch (error) {
+    console.error("Error fetching rooms by hostel:", error);
+    res.status(500).json({ error: "Failed to fetch rooms" });
+  }
+};
+
+// GET /rooms/:id - Get a single room by ID
 export const getRoomById = async (req, res) => {
   try {
-    const roomId = req.params.id;
+    const { id } = req.params;
 
     const room = await prisma.room.findUnique({
-      where: { id: roomId },
+      where: { id },
       select: {
         id: true,
         hostelId: true,
@@ -86,26 +167,18 @@ export const createRoom = async (req, res) => {
       return res.status(400).json({ error: "Missing or invalid required fields: hostelId, roomType, price, capacity" });
     }
 
-    // Verify the hostel exists
     const hostel = await prisma.hostel.findUnique({ where: { id: hostelId } });
     if (!hostel) {
       return res.status(404).json({ error: "Hostel not found" });
     }
 
-    const newRoom = await prisma.room.create({
-      data: {
-        hostelId,
-        roomType,
-        price,
-        capacity,
-        available,
-        amenities,
-      },
+    const room = await prisma.room.create({
+      data: { hostelId, roomType, price, capacity, available, amenities },
     });
 
     res.status(201).json({
       message: "Room created successfully",
-      room: newRoom,
+      room,
     });
   } catch (error) {
     console.error("Error creating room:", error);
@@ -113,48 +186,31 @@ export const createRoom = async (req, res) => {
   }
 };
 
-// PUT /rooms/:id - Update a room by ID
+// PUT /rooms/:id - Update a room
 export const updateRoom = async (req, res) => {
   try {
-    const roomId = req.params.id;
-    const { hostelId, roomType, price, capacity, available, amenities } = req.body;
+    const { id } = req.params;
+    const data = req.body;
 
-    // Check if room exists first
-    const existingRoom = await prisma.room.findUnique({ where: { id: roomId } });
+    const existingRoom = await prisma.room.findUnique({ where: { id } });
     if (!existingRoom) {
       return res.status(404).json({ error: "Room not found" });
     }
 
-    // Validate required fields only if present (allow partial updates)
-    if (
-      (hostelId !== undefined && !hostelId) ||
-      (roomType !== undefined && !roomType) ||
-      (price !== undefined && (isNaN(price) || price === null)) ||
-      (capacity !== undefined && (isNaN(capacity) || capacity === null))
-    ) {
+    if (!validateUpdateRoomData(data)) {
       return res.status(400).json({ error: "Invalid fields in update" });
     }
 
-    // If hostelId is being updated, check if that hostel exists
-    if (hostelId && hostelId !== existingRoom.hostelId) {
-      const hostel = await prisma.hostel.findUnique({ where: { id: hostelId } });
+    if (data.hostelId && data.hostelId !== existingRoom.hostelId) {
+      const hostel = await prisma.hostel.findUnique({ where: { id: data.hostelId } });
       if (!hostel) {
-        return res.status(404).json({ error: "Hostel not found" });
+        return res.status(404).json({ error: "Target hostel not found" });
       }
     }
 
-    // Build update data dynamically
-    const updateData = {};
-    if (hostelId) updateData.hostelId = hostelId;
-    if (roomType) updateData.roomType = roomType;
-    if (price !== undefined) updateData.price = price;
-    if (capacity !== undefined) updateData.capacity = capacity;
-    if (available !== undefined) updateData.available = available;
-    if (amenities !== undefined) updateData.amenities = amenities;
-
     const updatedRoom = await prisma.room.update({
-      where: { id: roomId },
-      data: updateData,
+      where: { id },
+      data,
     });
 
     res.status(200).json({
@@ -167,24 +223,20 @@ export const updateRoom = async (req, res) => {
   }
 };
 
-// DELETE /rooms/:id - Delete a room by ID
+// DELETE /rooms/:id - Delete a room
 export const deleteRoom = async (req, res) => {
   try {
-    const roomId = req.params.id;
+    const { id } = req.params;
 
-    // Check if room exists
-    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    const room = await prisma.room.findUnique({ where: { id } });
     if (!room) {
       return res.status(404).json({ error: "Room not found" });
     }
 
-    const deletedRoom = await prisma.room.delete({
-      where: { id: roomId },
-    });
+    await prisma.room.delete({ where: { id } });
 
     res.status(200).json({
       message: "Room deleted successfully",
-      room: deletedRoom,
     });
   } catch (error) {
     console.error("Error deleting room:", error);

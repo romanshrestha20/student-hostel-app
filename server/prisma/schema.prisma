@@ -95,12 +95,13 @@ model Favorite {
   student   User     @relation(fields: [studentId], references: [id])
   hostelId  String
   hostel    Hostel   @relation(fields: [hostelId], references: [id])
-  roomId    String?
-  room      Room?    @relation(fields: [roomId], references: [id])
-  createdAt DateTime @default(now())
+  roomId    String?   // Nullable for hostel-level favorites
+  room      Room?     @relation(fields: [roomId], references: [id])
+  createdAt DateTime  @default(now())
 
   @@unique([studentId, hostelId, roomId])
 }
+
 
 model Inquiry {
   id        String   @id @default(uuid())
