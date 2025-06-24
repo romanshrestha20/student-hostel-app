@@ -17,12 +17,14 @@ const Dashboard = () => {
           <button onClick={logout}>Logout</button>
           <p>Your role: {user.role}</p>
           <p>Your email: {user.email}</p>
-          <Link to="/favorites" className="text-blue-600 hover:underline">
-            My Favorites
-          </Link>
+         {user?.role == "student" && (
+           <Link to="/favorites" className="text-blue-600 hover:underline">
+             My Favorites
+           </Link>
+         )}
 
           <SearchHostels />
-          <CreateHostelForm />
+          {user?.role == "owner" && <CreateHostelForm />}
           <HostelList />
         </div>
       ) : (

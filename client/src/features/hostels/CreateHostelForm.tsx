@@ -1,71 +1,11 @@
 import React from "react";
-import { createHostel } from "../../api/hostelApi";
-import type { CreateHostelInput } from "../../api/hostelApi";
 import { useAuth } from "../../context/AuthContext";
+import { useCreateHostel } from "../../hooks/useCreateHostel";
 
 const CreateHostelForm = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [formData, setFormData] = React.useState<CreateHostelInput>({
-    name: "",
-    description: "",
-    address: "",
-    locationLat: 0,
-    locationLng: 0,
-    contactNumber: "",
-    amenities: [],
-    status: "pending",
-    ownerId: "", // will be set via useEffect
-  });
-
-    React.useEffect(() => {
-        if (user) {
-        setFormData((prev: CreateHostelInput) => ({
-            ...prev,
-            ownerId: user.id, // assuming user has an id field
-        }));
-        }
-    }, [user]);
-
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [message, setMessage] = React.useState<string | null>(null);
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name === "locationLat" || name === "locationLng"
-          ? parseFloat(value)
-          : value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-    if (!isAuthenticated || user?.role !== "owner") {
-      setError("Access denied. Only owners can create hostels.");
-      setLoading(false);
-      return;
-    }
-    try {
-      await createHostel(formData);
-      setMessage("Hostel created successfully!");
-      // Optionally reset form or navigate away
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { formData, error, loading, message, handleChange, handleSubmit } =
+    useCreateHostel();
 
   if (authLoading) return <p>Loading...</p>;
   if (!isAuthenticated || user?.role !== "owner")

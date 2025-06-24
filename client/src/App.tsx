@@ -15,17 +15,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<h1>Welcome to the Hostel Management System</h1>}
-        />
+        <Route path="/" element={<AuthPage />} />
         {/* Protected routes */}
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <Dashboard />
             </ProtectedRoute>
           }
@@ -42,7 +39,7 @@ function App() {
         <Route
           path="/hostels"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <HostelList />
             </ProtectedRoute>
           }
@@ -50,7 +47,7 @@ function App() {
         <Route
           path="/hostels/:hostelId"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <HostelDetail />
             </ProtectedRoute>
           }
@@ -58,7 +55,7 @@ function App() {
         <Route
           path="/favorites"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["student"]}>
               <FavoriteList />
             </ProtectedRoute>
           }
@@ -66,7 +63,7 @@ function App() {
         <Route
           path="/hostels/:hostelId/rooms"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <RoomList />
             </ProtectedRoute>
           }
@@ -74,7 +71,7 @@ function App() {
         <Route
           path="/rooms/:roomId"
           element={
-            <ProtectedRoute allowedRoles={["admin", "owner", "user"]}>
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <RoomDetail />
             </ProtectedRoute>
           }

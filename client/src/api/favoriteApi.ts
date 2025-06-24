@@ -13,7 +13,7 @@ export const getFavorites = async (userId: string): Promise<Favorite[]> => {
     }
 }
 
-export const addFavorite = async (userId: string, hostelId: string): Promise<Favorite> => {
+export const createFavorite = async (userId: string, hostelId: string): Promise<Favorite> => {
     try {
         const response = await api.post('/favorites', { userId, hostelId });
         return response.data.favorite;
@@ -23,7 +23,7 @@ export const addFavorite = async (userId: string, hostelId: string): Promise<Fav
     }
 }
 
-export const removeFavorite = async (favoriteId: string): Promise<void> => {
+export const deleteFavorite = async (favoriteId: string): Promise<void> => {
     try {
         await api.delete(`/favorites/${favoriteId}`);
     } catch (error) {
