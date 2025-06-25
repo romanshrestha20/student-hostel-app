@@ -8,7 +8,7 @@ import {
 
 import { validateUpdateUser } from "../middlewares/validiateUser.js";
 import { handleValidationErrors } from "../middlewares/handleValidatationErrors.js";
-import { authorizeRole, authorizeUpdateUser, protect } from "../middlewares/authMiddleware.js";
+import { authorizeRole, protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -16,13 +16,13 @@ const router = express.Router();
 router.get("/", protect, authorizeRole("admin"), getAllUsers);
 
 // Get user by ID
-router.get("/:id", protect,  getUserById);
+router.get("/:id", protect, getUserById);
 
 // Update user by ID
 router.put(
   "/:id",
   protect,
-  authorizeUpdateUser,
+
   validateUpdateUser,
   handleValidationErrors,
   updateUser

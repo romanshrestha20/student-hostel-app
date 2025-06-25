@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import hostelRoutes from "./routes/hostelRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -19,11 +20,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/hostels", hostelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // Test Prisma DB route
 app.get("/test-db", async (req, res) => {

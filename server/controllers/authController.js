@@ -1,96 +1,83 @@
 import prisma from "../prisma/client.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { generateToken } from "../utils/jwt.js";
+
+// Helper for validating allowed roles
+const VALID_ROLES = ["student", "owner", "admin"];
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // Find user by email with all required fields
-    const user = await prisma.user.findUnique({ 
+    const user = await prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        hashedPassword: true // Must match schema exactly
-      }
+        hashedPassword: true,
+      },
     });
 
-    if (!user) {
+    if (!user || !user.hashedPassword) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Verify hashedPassword exists
-    if (!user.hashedPassword) {
-      return res.status(500).json({ error: "User record is missing password" });
-    }
-
-    // Compare hashed password
     const isMatch = await bcrypt.compare(password, user.hashedPassword);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-    // Return response without password hash
     const { hashedPassword, ...userData } = user;
+
     res.status(200).json({
       message: "Login successful",
       token,
-      user: userData
+      user: userData,
     });
-
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Login failed",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
 
 export const createUser = async (req, res) => {
-  try {
-    const { name, email, password, role = 'student' } = req.body;
+  const { name, email, password, role = "student" } = req.body;
 
-    // Validate input
+  try {
     if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, email and password are required" });
+      return res.status(400).json({ error: "Name, email, and password are required" });
     }
 
-    // Validate role
-    if (!['student', 'owner', 'admin'].includes(role)) {
+    if (!VALID_ROLES.includes(role)) {
       return res.status(400).json({ error: "Invalid role specified" });
     }
 
-    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user - remove createdAt from select if not in schema
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -103,29 +90,55 @@ export const createUser = async (req, res) => {
         name: true,
         email: true,
         role: true,
-        // Only include createdAt if it exists in your schema
-        ...(await prisma.user.fields.createdAt ? { createdAt: true } : {})
-      }
+        createdAt: true, // Make sure createdAt exists in your schema
+      },
     });
 
-    // Generate token
-    const token = jwt.sign(
-      { id: newUser.id, email: newUser.email, role: newUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = generateToken({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    });
 
     res.status(201).json({
       message: "User created successfully",
       token,
-      user: newUser
+      user: newUser,
     });
-
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to create user",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+export const getLoggedInUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true, // Ensure this exists in your schema
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching logged-in user:", error);
+    res.status(500).json({
+      error: "Failed to fetch user",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
