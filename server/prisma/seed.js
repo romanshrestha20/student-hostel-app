@@ -4,17 +4,21 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  // ======= 1. CLEANUP EXISTING DATA (order matters due to relations)
+  // ======= 1. CLEANUP EXISTING DATA IN CORRECT ORDER
   await prisma.reply.deleteMany();
   await prisma.inquiry.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.room.deleteMany();
-  await prisma.hostel.deleteMany();
+  await prisma.booking.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.notification.deleteMany();
   await prisma.adminAction.deleteMany();
+  await prisma.userUpdateLog.deleteMany();
+  await prisma.hostel.deleteMany();
   await prisma.user.deleteMany();
 
-  // ======= 2. Create Users
+  // ======= 2. CREATE USERS
   const password = await bcrypt.hash('123456', 10);
 
   const student = await prisma.user.create({
@@ -23,16 +27,17 @@ async function main() {
       email: 'roman@student.com',
       hashedPassword: password,
       role: 'student',
+      gender: 'male',
     },
   });
 
-  // Multiple owners
   const owner1 = await prisma.user.create({
     data: {
       name: 'Roman Owner 1',
       email: 'roman.owner1@owner.com',
       hashedPassword: password,
       role: 'owner',
+      gender: 'male',
     },
   });
 
@@ -42,6 +47,7 @@ async function main() {
       email: 'roman.owner2@owner.com',
       hashedPassword: password,
       role: 'owner',
+      gender: 'female',
     },
   });
 
@@ -51,10 +57,11 @@ async function main() {
       email: 'roman@admin.com',
       hashedPassword: password,
       role: 'admin',
+      gender: 'unisex',
     },
   });
 
-  // ======= 3. Create Hostels assigned to different owners
+  // ======= 3. CREATE HOSTELS FOR OWNER 1
   const hostelsForOwner1 = [
     {
       name: 'Sunrise Hostel',
@@ -90,6 +97,7 @@ async function main() {
         locationLng: -122.4194,
         contactNumber: '+1234567890',
         amenities: ['WiFi', 'Laundry', 'Gym'],
+        gender: 'unisex',
         status: 'approved',
         ownerId: owner1.id,
         photos: {
@@ -104,8 +112,8 @@ async function main() {
               roomType: 'single',
               price: 350.0,
               capacity: 1,
-              amenities: ['Desk', 'Private Bathroom'],
               available: true,
+              amenities: ['Desk', 'Private Bathroom'],
               photos: {
                 create: [
                   { url: 'https://picsum.photos/seed/room1/200/302', isPrimary: true },
@@ -116,17 +124,16 @@ async function main() {
               roomType: 'dormitory',
               price: 150.0,
               capacity: 4,
-              amenities: ['Shared Bathroom', 'Bunk Beds'],
               available: true,
+              amenities: ['Shared Bathroom', 'Bunk Beds'],
             },
           ],
         },
       },
     });
 
-    // Add favorite and inquiry for Sunrise Hostel only
     if (data.name === 'Sunrise Hostel') {
-      await prisma.favorite.create({
+      const favorite = await prisma.favorite.create({
         data: {
           studentId: student.id,
           hostelId: hostel.id,
@@ -151,7 +158,7 @@ async function main() {
     }
   }
 
-  // Create hostels for owner2
+  // ======= 4. CREATE HOSTELS FOR OWNER 2
   for (const data of hostelsForOwner2) {
     await prisma.hostel.create({
       data: {
@@ -160,6 +167,7 @@ async function main() {
         locationLng: -122.4194,
         contactNumber: '+0987654321',
         amenities: ['WiFi', 'Laundry', 'Gym', 'Cafeteria'],
+        gender: 'female',
         status: 'approved',
         ownerId: owner2.id,
         photos: {
@@ -195,12 +203,12 @@ async function main() {
     });
   }
 
-  // ======= 4. Optional: Add admin action
+  // ======= 5. CREATE ADMIN ACTION
   await prisma.adminAction.create({
     data: {
       actionType: 'approve_hostel',
       targetType: 'hostel',
-      targetId: 'manual-placeholder-id', // use real ID in real workflow
+      targetId: 'manual-placeholder-id', // placeholder
       reason: 'Initial seed approval',
       adminId: admin.id,
     },

@@ -4,6 +4,8 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  getUserUpdateLogs,
+  searchUsers,
 } from "../controllers/userController.js";
 
 import { validateUpdateUser } from "../middlewares/validiateUser.js";
@@ -28,7 +30,17 @@ router.put(
   updateUser
 );
 
+router.get("/:id/logs", protect, authorizeRole("admin"), getUserUpdateLogs);
+
 // Delete user by ID
 router.delete("/:id", protect, authorizeRole("admin"), deleteUser);
+
+// Search users by name or email
+router.get(
+  "/search",
+  protect,
+  authorizeRole("admin"),
+  searchUsers
+);
 
 export default router;

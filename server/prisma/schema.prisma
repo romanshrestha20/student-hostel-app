@@ -1,4 +1,3 @@
-// datasource.db
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -9,192 +8,7 @@ generator client {
 }
 
 // ======================
-// CORE MODELS
-// ======================
-
-model User {
-  id             String   @id @default(uuid())
-  name           String
-  email          String   @unique
-  hashedPassword String
-  role           Role     @default(student)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  favorites    Favorite[]
-  inquiries    Inquiry[]
-  hostels      Hostel[]      @relation("HostelOwner")
-  adminActions AdminAction[] @relation("AdminActions")
-  replies      Reply[]       @relation("UserReplies")
-
-  // ✅ Add these:
-  bookings      Booking[]
-  reviews       Review[]
-  notifications Notification[]
-
-  @@index([email])
-  @@index([role])
-}
-
-model Hostel {
-  id            String       @id @default(uuid())
-  name          String
-  description   String
-  address       String
-  locationLat   Float
-  locationLng   Float
-  contactNumber String
-  amenities     String[]
-  status        HostelStatus @default(pending)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  // Relations
-  ownerId   String
-  owner     User       @relation("HostelOwner", fields: [ownerId], references: [id])
-  photos    Photo[]
-  rooms     Room[]
-  favorites Favorite[]
-  inquiries Inquiry[]
-
-  // ✅ Add this:
-  reviews Review[]
-
-  @@index([ownerId])
-  @@index([status])
-  @@index([locationLat, locationLng])
-}
-
-// ======================
-// FEATURE MODELS
-// ======================
-
-model Room {
-  id        String     @id @default(uuid())
-  roomType  RoomType
-  price     Float
-  capacity  Int
-  available Boolean    @default(true)
-  amenities String[]
-  hostelId  String
-  hostel    Hostel     @relation(fields: [hostelId], references: [id])
-  photos    Photo[]
-  favorites Favorite[]
-
-  // ✅ Add this:
-  bookings Booking[]
-
-  @@index([hostelId])
-  @@index([price])
-  @@index([available])
-}
-
-model Photo {
-  id        String  @id @default(uuid())
-  url       String
-  isPrimary Boolean @default(false)
-  hostelId  String?
-  hostel    Hostel? @relation(fields: [hostelId], references: [id])
-  roomId    String?
-  room      Room?   @relation(fields: [roomId], references: [id])
-}
-
-model Favorite {
-  id        String   @id @default(uuid())
-  studentId String
-  student   User     @relation(fields: [studentId], references: [id])
-  hostelId  String
-  hostel    Hostel   @relation(fields: [hostelId], references: [id])
-  roomId    String? // Nullable for hostel-level favorites
-  room      Room?    @relation(fields: [roomId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@unique([studentId, hostelId, roomId])
-}
-
-model Inquiry {
-  id        String   @id @default(uuid())
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  // Relations
-  studentId String
-  student   User    @relation(fields: [studentId], references: [id])
-  hostelId  String
-  hostel    Hostel  @relation(fields: [hostelId], references: [id])
-  replies   Reply[]
-
-  @@index([studentId])
-  @@index([hostelId])
-  @@index([isRead])
-}
-
-model Reply {
-  id          String   @id @default(uuid())
-  message     String
-  createdAt   DateTime @default(now())
-  inquiryId   String
-  inquiry     Inquiry  @relation(fields: [inquiryId], references: [id])
-  repliedById String
-  repliedBy   User     @relation("UserReplies", fields: [repliedById], references: [id])
-}
-
-model Booking {
-  id        String        @id @default(uuid())
-  student   User          @relation(fields: [studentId], references: [id])
-  studentId String
-  room      Room          @relation(fields: [roomId], references: [id])
-  roomId    String
-  startDate DateTime
-  endDate   DateTime
-  status    BookingStatus @default(pending)
-  createdAt DateTime      @default(now())
-}
-
-enum BookingStatus {
-  pending
-  confirmed
-  cancelled
-  completed
-}
-
-model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String?
-  student   User     @relation(fields: [studentId], references: [id])
-  studentId String
-  hostel    Hostel   @relation(fields: [hostelId], references: [id])
-  hostelId  String
-  createdAt DateTime @default(now())
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  message   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-}
-
-model AdminAction {
-  id         String     @id @default(uuid())
-  actionType ActionType
-  targetType TargetType
-  targetId   String
-  reason     String?
-  createdAt  DateTime   @default(now())
-
-  // Relations
-  adminId String?
-  admin   User?   @relation("AdminActions", fields: [adminId], references: [id])
-}
-
-// ======================
-// ENUMS
+// ENUMS (Moved to top)
 // ======================
 
 enum Role {
@@ -231,4 +45,203 @@ enum TargetType {
   user
   photo
   review
+}
+
+enum Gender {
+  male
+  female
+  unisex
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+// ======================
+// MODELS
+// ======================
+
+model User {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  hashedPassword String
+  role           Role     @default(student)
+  gender         Gender?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations — remove onDelete here:
+  favorites    Favorite[]
+  inquiries    Inquiry[]
+  hostels      Hostel[]        @relation("HostelOwner")
+  adminActions AdminAction[]   @relation("AdminActions")
+  replies      Reply[]         @relation("UserReplies")
+  updateLogs   UserUpdateLog[] @relation("UserUpdateLogs")
+
+  bookings      Booking[]
+  reviews       Review[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Hostel {
+  id            String       @id @default(uuid())
+  name          String
+  description   String
+  address       String
+  locationLat   Float
+  locationLng   Float
+  contactNumber String
+  amenities     String[]
+  status        HostelStatus @default(pending)
+  gender        Gender       @default(unisex)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  ownerId   String
+  owner     User       @relation("HostelOwner", fields: [ownerId], references: [id])
+  photos    Photo[]
+  rooms     Room[]
+  favorites Favorite[]
+  inquiries Inquiry[]
+  reviews   Review[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([locationLat, locationLng])
+  @@index([gender])
+}
+
+model Room {
+  id        String     @id @default(uuid())
+  roomType  RoomType
+  price     Float
+  capacity  Int
+  available Boolean    @default(true)
+  amenities String[]
+  hostelId  String
+  hostel    Hostel     @relation(fields: [hostelId], references: [id])
+  photos    Photo[]
+  favorites Favorite[]
+
+  bookings Booking[]
+
+  @@index([hostelId])
+  @@index([price])
+  @@index([available])
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  studentId String
+  student   User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  roomId    String
+  room      Room          @relation(fields: [roomId], references: [id])
+  startDate DateTime
+  endDate   DateTime
+  status    BookingStatus @default(pending)
+  createdAt DateTime      @default(now())
+}
+
+model Photo {
+  id        String  @id @default(uuid())
+  url       String
+  isPrimary Boolean @default(false)
+  hostelId  String?
+  hostel    Hostel? @relation(fields: [hostelId], references: [id])
+  roomId    String?
+  room      Room?   @relation(fields: [roomId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  studentId String
+student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  hostelId  String
+  hostel    Hostel   @relation(fields: [hostelId], references: [id])
+  roomId    String? // Nullable for hostel-level favorites
+  room      Room?    @relation(fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, hostelId, roomId])
+}
+
+model Inquiry {
+  id        String   @id @default(uuid())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations — add onDelete cascade here on FK field:
+  studentId String
+  student   User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  hostelId  String
+  hostel    Hostel  @relation(fields: [hostelId], references: [id])
+  replies   Reply[]
+
+  @@index([studentId])
+  @@index([hostelId])
+  @@index([isRead])
+}
+
+model Reply {
+  id          String   @id @default(uuid())
+  message     String
+  createdAt   DateTime @default(now())
+  inquiryId   String
+  inquiry     Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  repliedById String
+  repliedBy   User     @relation("UserReplies", fields: [repliedById], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  hostelId  String
+  hostel    Hostel   @relation(fields: [hostelId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  message   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model UserUpdateLog {
+  id        String   @id @default(uuid())
+  userId    String
+  updatedBy String
+  field     String
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
+
+  user User @relation("UserUpdateLogs", fields: [userId], references: [id])
+}
+
+model AdminAction {
+  id         String     @id @default(uuid())
+  actionType ActionType
+  targetType TargetType
+  targetId   String
+  reason     String?
+  createdAt  DateTime   @default(now())
+
+  // Relations
+  adminId String?
+  admin   User?   @relation("AdminActions", fields: [adminId], references: [id])
 }

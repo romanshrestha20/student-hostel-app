@@ -5,6 +5,9 @@ import { generateToken } from "../utils/jwt.js";
 // Helper for validating allowed roles
 const VALID_ROLES = ["student", "owner", "admin"];
 
+// helper function to validate gender
+const VALID_GENDERS = ["male", "female", "unisex"];
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -56,15 +59,30 @@ export const loginUser = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { name, email, password, role = "student" } = req.body;
+  const { name, email, password, role = "student", gender } = req.body;
 
   try {
     if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, email, and password are required" });
+      return res
+        .status(400)
+        .json({ error: "Name, email, and password are required" });
     }
 
     if (!VALID_ROLES.includes(role)) {
       return res.status(400).json({ error: "Invalid role specified" });
+    }
+
+    // Require gender only for users with role = student
+    if (role === "student") {
+      if (!gender) {
+        return res
+          .status(400)
+          .json({ error: "Gender is required for students" });
+      }
+
+      if (!VALID_GENDERS.includes(gender.toLowerCase())) {
+        return res.status(400).json({ error: "Invalid gender value" });
+      }
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -84,6 +102,7 @@ export const createUser = async (req, res) => {
         email,
         hashedPassword,
         role,
+        gender: role === "student" ? gender : null, // Only require gender for students
       },
       select: {
         id: true,

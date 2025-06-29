@@ -91,6 +91,32 @@ export const getBookingById = async (req, res) => {
   }
 };
 
+export const getBookingsByRoomId = async (req, res) => {
+  const { roomId } = req.params;
+
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { roomId },
+      include: {
+        room: true, // Include room details
+      },
+    });
+
+    if (bookings.length === 0) {
+      return res.status(404).json({ error: "No bookings found for this room" });
+    }
+
+    res.status(200).json({
+      message: "Bookings fetched successfully",
+      bookings,
+    });
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ error: "Failed to fetch bookings" });
+  }
+};
+
+
 export const cancelBooking = async (req, res) => {
   const { id } = req.params;
 
