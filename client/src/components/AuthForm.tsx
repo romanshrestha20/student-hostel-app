@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import type { Role } from "../types/user";
+import type { Role, Gender } from "../types/user";
+import { Button, Checkbox, Select, TextInput } from "./common";
 
 interface AuthFormProps {
   mode: "login" | "register";
@@ -9,13 +10,18 @@ interface AuthFormProps {
     email: string;
     password: string;
     role?: Role;
+    gender?: Gender;
   }) => void;
   onToggleMode: () => void;
 }
 
 const roles: Role[] = ["student", "owner", "admin"];
 
-const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) => {
+const AuthForm: React.FC<AuthFormProps> = ({
+  mode,
+  onSuccess,
+  onToggleMode,
+}) => {
   const { login, register } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -27,6 +33,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
     email: "",
     password: "",
     role: "student" as Role,
+    gender: "male" as Gender,
   });
 
   const handleChange = (
@@ -75,10 +82,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
         {mode === "register" && (
           <>
             <div>
-              <label htmlFor="name" className="block mb-1 font-medium">
-                Name
-              </label>
-              <input
+              <TextInput
+                label="Name"
                 id="name"
                 type="text"
                 name="name"
@@ -88,12 +93,24 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
                 className="w-full p-2 border rounded"
               />
             </div>
+            <div>
+              <Select
+                label="Gender"
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </Select>
+            </div>
 
             <div>
-              <label htmlFor="role" className="block mb-1 font-medium">
-                Role
-              </label>
-              <select
+              <Select
+                label="Role"
                 id="role"
                 name="role"
                 value={formData.role}
@@ -105,16 +122,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
                     {role.charAt(0).toUpperCase() + role.slice(1)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </>
         )}
 
         <div>
-          <label htmlFor="email" className="block mb-1 font-medium">
-            Email
-          </label>
-          <input
+          <TextInput
+            label="Email"
             id="email"
             type="email"
             name="email"
@@ -126,10 +141,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
         </div>
 
         <div>
-          <label htmlFor="password" className="block mb-1 font-medium">
-            Password
-          </label>
-          <input
+          <TextInput
+            label="Password"
             id="password"
             type={showPassword ? "text" : "password"}
             name="password"
@@ -140,16 +153,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
           />
 
           <div className="flex items-center mt-2">
-            <input
+            <Checkbox
+              label="Show Password"
+              name="showPassword"
               id="showPassword"
               type="checkbox"
               checked={showPassword}
               onChange={() => setShowPassword((prev) => !prev)}
               className="mr-2"
             />
-            <label htmlFor="showPassword" className="text-sm text-gray-700">
-              Show password
-            </label>
           </div>
         </div>
 
@@ -159,7 +171,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
           </p>
         )}
 
-        <button
+        <Button
+          id="submit"
           type="submit"
           disabled={loading}
           className={`w-full p-2 text-white rounded transition ${
@@ -167,7 +180,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onToggleMode }) =>
           }`}
         >
           {loading ? "Loading..." : mode === "login" ? "Login" : "Register"}
-        </button>
+        </Button>
 
         <div className="mt-4 text-center">
           <button

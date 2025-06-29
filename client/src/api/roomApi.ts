@@ -9,7 +9,10 @@ function getErrorMessage(error: unknown): string {
 // Get all rooms (optionally paginated)
 export const getRooms = async (hostelId: string, page = 1, limit = 10): Promise<Room[]> => {
   try {
-    const response = await api.get('/rooms', { params: { page, limit, hostelId } });
+    const response = await api.get('/rooms',
+      {
+        params: { page, limit, hostelId }
+      });
     return response.data.rooms;
   } catch (error: unknown) {
     console.error('Error fetching rooms:', getErrorMessage(error));

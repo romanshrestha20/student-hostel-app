@@ -4,7 +4,7 @@ import type { Hostel } from '../types/hostel';
 
 export type CreateHostelInput = Omit<
     Hostel,
-    'id' | 'createdAt' | 'updatedAt' | 'photos' | 'rooms' | 'favorites' | 'inquiries' | 'owner'
+    'id' | 'createdAt' | 'updatedAt' | 'photos' | 'rooms' | 'favorites' | 'inquiries' | 'owner' | 'Gender'
 >;
 
 /**

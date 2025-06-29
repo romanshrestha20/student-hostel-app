@@ -1,6 +1,6 @@
 // src/api/authApi.ts
 import { api } from './api';
-import type { User, Role } from '../types/user';
+import type { User, Role, Gender } from '../types/user';
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /* Types                                                                    */
@@ -21,6 +21,8 @@ export interface RegisterPayload {
   email: string;
   password: string;
   role?: Role; // defaults to "student"
+  gender?: Gender; // defaults to "male"
+
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -57,12 +59,14 @@ export const register = async ({
   email,
   password,
   role = 'student',
+  gender = 'male',
 }: RegisterPayload): Promise<AuthResponse> => {
   const res = await api.post<AuthResponse>('/auth/register', {
     name,
     email,
     password,
     role,
+    gender,
   });
   setAuthToken(res.data.token);
   return res.data;
