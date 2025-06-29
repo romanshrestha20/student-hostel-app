@@ -141,7 +141,6 @@ export const createHostel = async (req, res) => {
         .status(400)
         .json({ error: "Invalid ownerId or user is not an owner." });
     }
-
     // Create hostel
     const newHostel = await prisma.hostel.create({
       data: {
@@ -152,7 +151,12 @@ export const createHostel = async (req, res) => {
         locationLat,
         locationLng,
         contactNumber,
-        amenities: amenities || [],
+        amenities: Array.isArray(amenities)
+          ? amenities
+          : typeof amenities === "string"
+          ? amenities.split(",").map((a) => a.trim())
+          : [],
+
         status: status || "pending",
       },
     });
@@ -166,7 +170,6 @@ export const createHostel = async (req, res) => {
     return res.status(500).json({ error: "Failed to create hostel" });
   }
 };
-
 
 export const updateHostel = async (req, res) => {
   try {
@@ -236,7 +239,11 @@ export const updateHostel = async (req, res) => {
         locationLat,
         locationLng,
         contactNumber,
-        amenities: amenities || [],
+        amenities: Array.isArray(amenities)
+          ? amenities
+          : typeof amenities === "string"
+          ? amenities.split(",").map((a) => a.trim())
+          : [],
         status: status || existingHostel.status, // preserve old status if not updated
       },
     });
