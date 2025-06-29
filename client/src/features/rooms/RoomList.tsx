@@ -1,8 +1,8 @@
-// RoomList.tsx
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type { Room } from "../../types/room";
 import { getRooms } from "../../api/roomApi";
+import RoomCard from "./RoomCard";
 
 const RoomList: React.FC = () => {
   const { hostelId } = useParams<{ hostelId: string }>();
@@ -36,24 +36,17 @@ const RoomList: React.FC = () => {
   return (
     <div>
       {loading && <p>Loading rooms...</p>}
-      {error && <p>Error fetching rooms: {error}</p>}
+      {error && <p className="text-red-600">Error fetching rooms: {error}</p>}
       {!loading && !error && rooms.length === 0 && <p>No rooms found.</p>}
       {!loading && !error && rooms.length > 0 && (
         <>
-          <h2>Available Rooms</h2>
-          <p>Total Rooms: {rooms.length}</p>
-          <ul>
+          <h2 className="mb-4 text-2xl font-bold">Available Rooms</h2>
+          <p className="mb-6">Total Rooms: {rooms.length}</p>
+          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
             {rooms.map((room) => (
-              <li key={room.id}>
-                <Link to={`/rooms/${room.id}`}>
-                  <strong>{room.roomType}</strong> - ${room.price} - Capacity:{" "}
-                  {room.capacity} - {room.available ? "Available" : "Not available"}
-                  <br />
-                  Amenities: {room.amenities.join(", ")}
-                </Link>
-              </li>
+              <RoomCard key={room.id} room={room} />
             ))}
-          </ul>
+          </div>
         </>
       )}
     </div>
