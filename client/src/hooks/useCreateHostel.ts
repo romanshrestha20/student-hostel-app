@@ -9,6 +9,7 @@ export const useCreateHostel = () => {
     const [formData, setFormData] = useState<CreateHostelInput>({
         name: "",
         description: "",
+        gender: "",
         address: "",
         locationLat: 0,
         locationLng: 0,
