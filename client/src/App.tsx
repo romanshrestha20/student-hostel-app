@@ -10,10 +10,17 @@ import HostelDetail from "./features/hostels/HostelDetail";
 import RoomList from "./features/rooms/RoomList";
 import RoomDetail from "./features/rooms/RoomDetail";
 import FavoriteList from "./features/favorites/FavoriteList";
+   import BookingManager from "./features/bookings/BookingManager";
+   import BookingDetails from "./features/bookings/BookingDetails";
+   import BookingList from "./features/bookings/BookingList";
+   import BookingForm from "./features/bookings/BookingForm";
+   import Navbar from "./components/Navbar";
+
 
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<AuthPage />} />
         {/* Protected routes */}
@@ -73,6 +80,42 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
               <RoomDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/create-booking/:roomId"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
+              <BookingForm />
+            </ProtectedRoute>
+          }
+        />
+        {/* Booking management for admin and owner */}
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner"]}>
+              <BookingManager />
+            </ProtectedRoute>
+          }
+        />
+        {/* Booking list by user */}
+        <Route
+          path="/bookings/user"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
+              <BookingList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/bookings/:bookingId"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
+              <BookingDetails />
             </ProtectedRoute>
           }
         />
