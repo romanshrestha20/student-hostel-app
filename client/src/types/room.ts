@@ -2,6 +2,7 @@
 import type { Hostel } from './hostel';
 import type { Photo } from './photo';
 import type { Favorite } from './favorite';
+// import type { Booking } from './booking';
 
 export interface Room {
     id: string;
@@ -14,6 +15,7 @@ export interface Room {
     hostel?: Hostel;
     photos: Photo[];
     favorites: Favorite[];
+    // booking: Booking[];
 }
 
 export type RoomType = 'single' | 'double' | 'dormitory' | 'apartment';

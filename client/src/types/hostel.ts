@@ -7,6 +7,7 @@ import type { Inquiry } from './inquiry';
 export interface Hostel {
     id: string;
     name: string;
+    gender: string;
     description: string;
     address: string;
     locationLat: number;
