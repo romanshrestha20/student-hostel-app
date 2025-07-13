@@ -31,16 +31,33 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+const isAdmin = (req, res, next) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ error: "Admin only" });
+  next();
+};
+
+const isOwner = (req, res, next) => {
+  if (req.user.role !== "owner")
+    return res.status(403).json({ error: "Owner only" });
+  next();
+};
+
+const loggedInUser = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  next();
+};
+
+
 // Get user by ID
 export const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
     const loggedInUser = req.user;
 
-    if (loggedInUser.role !== "admin" && loggedInUser.id !== userId) {
-      return res.status(403).json({
-        error: "You are not authorized to access this user",
-      });
+    // Authorization: only admin or the user themselves can view
+    if (isAdmin && loggedInUser.id !== userId) {
+      return res.status(403).json({ error: "You are not authorized to view this user" });
     }
 
     const user = await prisma.user.findUnique({
@@ -80,7 +97,7 @@ export const updateUser = async (req, res) => {
     let { name, email, password, role, gender } = req.body;
     const loggedInUser = req.user;
 
-    // Authorization: only admin or the user themselves can update
+    // Authorization: only admin can update other users, or user can update their own details
     if (loggedInUser.role !== "admin" && loggedInUser.id !== userId) {
       return res.status(403).json({ error: "You are not authorized to update this user" });
     }

@@ -65,14 +65,17 @@ enum BookingStatus {
 // ======================
 
 model User {
-  id             String   @id @default(uuid())
+  id             String  @id @default(uuid())
   name           String
-  email          String   @unique
+  email          String  @unique
   hashedPassword String
-  role           Role     @default(student)
+  role           Role    @default(student)
   gender         Gender?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  photos Photo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations — remove onDelete here:
   favorites    Favorite[]
@@ -154,16 +157,25 @@ model Photo {
   id        String  @id @default(uuid())
   url       String
   isPrimary Boolean @default(false)
-  hostelId  String?
-  hostel    Hostel? @relation(fields: [hostelId], references: [id])
-  roomId    String?
-  room      Room?   @relation(fields: [roomId], references: [id])
+
+  // Optional FK relations — only this side uses `fields` + `references`
+  hostelId String?
+  hostel   Hostel? @relation(fields: [hostelId], references: [id])
+
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id])
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Favorite {
   id        String   @id @default(uuid())
   studentId String
-student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   hostelId  String
   hostel    Hostel   @relation(fields: [hostelId], references: [id])
   roomId    String? // Nullable for hostel-level favorites
