@@ -12,7 +12,8 @@ import {
 import { validateUpdateUser } from "../middlewares/validiateUser.js";
 import { handleValidationErrors } from "../middlewares/handleValidatationErrors.js";
 import { authorizeRole, protect } from "../middlewares/authMiddleware.js";
-import { upload } from "../utils/multer.js";
+
+import upload from "../utils/multer.js";
 
 const router = express.Router();
 

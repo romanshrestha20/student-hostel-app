@@ -29,6 +29,9 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/bookings", bookingRoutes);
 
+app.use("/uploads", express.static("uploads"));
+
+
 // Test Prisma DB route
 app.get("/test-db", async (req, res) => {
   try {

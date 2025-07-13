@@ -70,6 +70,7 @@ export const getUserById = async (req, res) => {
         gender: true,
         createdAt: true,
         updatedAt: true, // Include updatedAt for last modified info
+        avatar: true, // Include avatar URL
       },
     });
 

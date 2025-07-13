@@ -2,30 +2,25 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// Helper to ensure folder exists
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
+// Set up storage engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const model = req.params.model || "other"; // fallback if not provided
-    const folder = `uploads/${model}`;
-    ensureDir(folder); // make sure the folder exists
-    cb(null, folder);
+    // Assume model name is provided in req.body.model or req.query.model
+    const modelName = req.body.model || req.query.model || "default";
+    const uploadDir = path.join(__dirname, "../../uploads", modelName);
+    // Ensure the upload directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    const name = Date.now() + "-" + file.originalname.replace(/\s/g, "_");
-    cb(null, name);
+    const fileName =
+      path.basename(file.originalname, ext) + "-" + uniqueSuffix + ext;
+    cb(null, fileName);
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowed = ["image/jpeg", "image/png", "image/jpg"];
-  cb(null, allowed.includes(file.mimetype));
-};
-
-export const upload = multer({ storage, fileFilter });
+export default multer({ storage });
