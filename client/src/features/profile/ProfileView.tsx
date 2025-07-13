@@ -1,5 +1,6 @@
 import React from "react";
 import useProfile from "../../hooks/useProfile";
+import { Link } from "react-router-dom";
 
 export const ProfileView: React.FC = () => {
   const { profile, error } = useProfile();
@@ -56,12 +57,18 @@ export const ProfileView: React.FC = () => {
         })}
       </p>
       <div className="m-4">
-        <button className="px-4 py-2 m-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <Link
+          to="/edit-profile"
+          className="px-4 py-2 m-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
           Edit Profile
-        </button>
-        <button className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+        </Link>
+        <Link
+          to="/delete-profile"
+          className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+        >
           Delete Profile
-        </button>
+        </Link>
       </div>
     </div>
   );

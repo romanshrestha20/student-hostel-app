@@ -1,7 +1,7 @@
 import React from 'react';
 import type { User } from '../types/user';
 import { useAuth } from '../context/useAuth';
-import { useForm } from 'react-hook-form';
+
 import { getUserById, updateUser } from '../api/userApi';
 
 const useProfile = () => {
@@ -39,7 +39,7 @@ const useProfile = () => {
         try {
             // Call API to edit profile
             const response = await updateUser(userId, data);
-            setProfile(response.user);
+            setProfile(response);
             setMessage('Profile updated successfully');
         } catch (err) {
             setError('Failed to edit profile');
