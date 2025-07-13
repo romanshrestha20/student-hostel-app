@@ -63,54 +63,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  const handleAuthSuccess = (response: AuthResponse) => {
-    setUser(response.user);
-    setToken(response.token);
-    setAuthToken(response.token);
-    setError(null);
-  };
+const handleAuthSuccess = (response: AuthResponse) => {
+  setUser(response.user);
+  setToken(response.token);
+  setAuthToken(response.token);
+  setError(null);
 
-  const handleAuthError = (error: unknown) => {
-    if (error instanceof Error) {
-      setError(error.message);
-    } else {
-      setError('An unexpected error occurred');
-    }
-    setUser(null);
-    setToken(null);
-    setAuthToken(null);
-  };
+  // Save to localStorage
+  localStorage.setItem("token", response.token);
+  localStorage.setItem("user", JSON.stringify(response.user));
+};
 
-  const authLogin = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      const response = await login({ email, password });
-      handleAuthSuccess(response);
-    } catch (error) {
-      handleAuthError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleAuthError = (error: unknown) => {
+  if (error instanceof Error) {
+    setError(error.message);
+  } else {
+    setError("An unexpected error occurred");
+  }
+  setUser(null);
+  setToken(null);
+  setAuthToken(null);
+};
 
-  const authRegister = async (name: string, email: string, password: string, role?: Role) => {
-    try {
-      setIsLoading(true);
-      const response = await register({ name, email, password, role });
-      handleAuthSuccess(response);
-    } catch (error) {
-      handleAuthError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const authLogin = async (email: string, password: string) => {
+  try {
+    setIsLoading(true);
+    const response = await login({ email, password });
+    handleAuthSuccess(response);
+  } catch (error) {
+    handleAuthError(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-  const logout = () => {
-    apiLogout();
-    setUser(null);
-    setToken(null);
-    setError(null);
-  };
+const authRegister = async (
+  name: string,
+  email: string,
+  password: string,
+  role?: Role
+) => {
+  try {
+    setIsLoading(true);
+    const response = await register({ name, email, password, role });
+    handleAuthSuccess(response);
+  } catch (error) {
+    handleAuthError(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+ const logout = () => {
+   apiLogout();
+   setUser(null);
+   setToken(null);
+   setError(null);
+
+   // Remove from localStorage
+   localStorage.removeItem("token");
+   localStorage.removeItem("user");
+   setAuthToken(null);
+ };
 
   const value = {
     user,

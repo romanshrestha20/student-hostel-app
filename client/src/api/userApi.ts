@@ -43,7 +43,7 @@ export const getUserById = async (userId: string): Promise<User> => {
 export const updateUser = async (userId: string, userData: Partial<User>): Promise<User> => {
     try {
         const response = await api.put(`/users/${userId}`, userData);
-        return response.data;
+        return response.data.user;
     } catch (error) {
         console.error(`Error updating user with ID ${userId}:`, error);
         throw error;

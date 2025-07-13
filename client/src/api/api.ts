@@ -1,17 +1,31 @@
 import axios, { AxiosError } from 'axios';
 
+
+
+
 export const api = axios.create({
     baseURL: 'http://localhost:4000/api',
     headers: {
-        'Content-Type': 'application/json',
         Accept: 'application/json',
     },
 });
+
 // Global error interceptor
 api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response) {
+            if (error.response.status === 401) {
+                // Token expired or unauthorized - logout user
+                // Clear localStorage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                // You might also want to reset auth context here if possible
+
+                // Redirect to login page
+                window.location.href = '/login';
+            }
+
             console.error('API Error:', error.response.data);
             return Promise.reject(error.response.data);
         }
