@@ -69,6 +69,7 @@ export const getUserById = async (req, res) => {
         role: true,
         gender: true,
         createdAt: true,
+        updatedAt: true, // Include updatedAt for last modified info
       },
     });
 

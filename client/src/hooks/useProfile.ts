@@ -24,6 +24,7 @@ const useProfile = () => {
             try {
                 setLoading(true);
                 const response = await getUserById(userId);
+                console.log('fetched updated date:', response.updatedAt);
                 setProfile(response);
             } catch (err) {
                 setError('Failed to load profile');
