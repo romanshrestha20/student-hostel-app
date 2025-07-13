@@ -27,7 +27,7 @@ export const getUsers = async (): Promise<User[]> => {
 export const getUserById = async (userId: string): Promise<User> => {
     try {
         const response = await api.get(`/users/${userId}`);
-        return response.data;
+        return response.data.user;
     } catch (error) {
         console.error(`Error fetching user with ID ${userId}:`, error);
         throw error;

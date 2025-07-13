@@ -9,6 +9,8 @@ export interface User {
   role: Role;
   gender: Gender;
 
+  photoUrl?: string; // URL to the user's profile photo
+
   createdAt: string;
   updatedAt: string;
   // Optionally:
