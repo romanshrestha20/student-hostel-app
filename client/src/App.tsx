@@ -15,7 +15,7 @@ import FavoriteList from "./features/favorites/FavoriteList";
    import BookingList from "./features/bookings/BookingList";
    import BookingForm from "./features/bookings/BookingForm";
    import Navbar from "./components/Navbar";
-import { ProfileView } from "./features/Profile/ProfileView";
+import { ProfileView } from "./features/profile/ProfileView";
 
 
 function App() {

@@ -1,6 +1,8 @@
 import React from 'react';
+import type { User } from '../types/user';
 import { useAuth } from '../context/useAuth';
-import { getUserById } from '../api/userApi';
+import { useForm } from 'react-hook-form';
+import { getUserById, updateUser } from '../api/userApi';
 
 const useProfile = () => {
     const { user } = useAuth();
@@ -9,6 +11,8 @@ const useProfile = () => {
     const [profile, setProfile] = React.useState(user || null);
     const [loading, setLoading] = React.useState(!user);
     const [error, setError] = React.useState<string | null>(null);
+    const [message, setMessage] = React.useState<string | null>(null);
+
 
     React.useEffect(() => {
         if (!userId) {
@@ -31,7 +35,18 @@ const useProfile = () => {
         fetchProfile();
     }, [userId]);
 
-    return { profile, loading, error };
+    const handleEditProfile = async (userId: string, data: Partial<User>) => {
+        try {
+            // Call API to edit profile
+            const response = await updateUser(userId, data);
+            setProfile(response.user);
+            setMessage('Profile updated successfully');
+        } catch (err) {
+            setError('Failed to edit profile');
+            console.error('Error updating profile:', err);
+        }
+    }
+    return { profile, loading, error, message, handleEditProfile };
 };
 
 export default useProfile;

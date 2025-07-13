@@ -1,5 +1,5 @@
 import prisma from "../prisma/client.js";
-import { validateBookingData } from "../middlewares/validiators.js";
+
 
 export const createBooking = async (req, res) => {
   const { roomId, studentId, checkInDate, checkOutDate } = req.body;
@@ -20,7 +20,6 @@ export const createBooking = async (req, res) => {
         studentId,
         startDate: new Date(checkInDate),
         endDate: new Date(checkOutDate),
-        status: "confirmed", // Assuming default status is CONFIRMED
       },
     });
 

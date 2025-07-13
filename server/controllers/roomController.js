@@ -21,7 +21,6 @@ export const getAllRooms = async (req, res) => {
           amenities: true,
           hostelId: true,
           hostel: true,
-          photos: true,
           favorites: true,
         },
       }),
@@ -63,7 +62,7 @@ export const getRoomsByRoomType = async (req, res) => {
         capacity: true,
         available: true,
         amenities: true,
-        photos: true,
+
       },
     });
 
@@ -140,7 +139,7 @@ export const getRoomById = async (req, res) => {
         capacity: true,
         available: true,
         amenities: true,
-        photos: true,
+
       },
     });
 

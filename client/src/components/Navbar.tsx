@@ -8,13 +8,7 @@ const Navbar: React.FC = () => {
   // Memoize nav links based on user role
   const navLinks = React.useMemo(() => {
     if (!user) {
-      return [
-        { to: "/dashboard", label: "Dashboard" },
-        { to: "/hostels", label: "Hostels" },
-
-        { to: "/login", label: "Login" },
-        { to: "/register", label: "Register" },
-      ];
+      return [{ to: "/", label: "Login" }];
     }
 
     const commonLinks = [{ to: "/profile", label: "Profile" }];
