@@ -64,3 +64,30 @@ export const deleteUser = async (userId: string): Promise<void> => {
         throw error;
     }
 };
+
+
+/**
+ * Uploads a user avatar image.
+ * @param {FormData} formData - The FormData object containing the avatar file.
+ * @returns {Promise<string>} A promise that resolves to the URL of the uploaded avatar.
+ */
+export const uploadUserAvatar = async (userId: string, selectedFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("avatar", selectedFile);
+
+    const response = await api.post(`/users/${userId}/avatar/user`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+
+    // The avatar URL relative path is here:
+    const avatarRelativePath = response.data.user.avatar;
+
+    // Prepend your backend URL if needed:
+    const backendBaseUrl = "http://localhost:4000";
+
+    return avatarRelativePath.startsWith("/uploads")
+        ? backendBaseUrl + avatarRelativePath
+        : avatarRelativePath;
+};

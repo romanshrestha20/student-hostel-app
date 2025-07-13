@@ -1,5 +1,6 @@
 // /server.js
 import express from "express";
+import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./prisma/client.js"; // Import Prisma client
@@ -21,7 +22,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/hostels", hostelRoutes);
@@ -29,8 +29,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/bookings", bookingRoutes);
 
-app.use("/uploads", express.static("uploads"));
-
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Test Prisma DB route
 app.get("/test-db", async (req, res) => {

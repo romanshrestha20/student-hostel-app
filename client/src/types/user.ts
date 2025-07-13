@@ -9,7 +9,7 @@ export interface User {
   role: Role;
   gender: Gender;
 
-  photoUrl?: string; // URL to the user's profile photo
+  avatar?: string; // URL to the user's avatar image
 
   createdAt: string;
   updatedAt: string;

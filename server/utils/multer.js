@@ -1,17 +1,21 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-// Set up storage engine
+// ESM-safe __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Assume model name is provided in req.body.model or req.query.model
-    const modelName = req.body.model || req.query.model || "default";
-    const uploadDir = path.join(__dirname, "../../uploads", modelName);
-    // Ensure the upload directory exists
+    const modelName = req.params.model || "general";
+    const uploadDir = path.join(__dirname, "../uploads", modelName);
+
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
+
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
