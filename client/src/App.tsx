@@ -16,6 +16,7 @@ import FavoriteList from "./features/favorites/FavoriteList";
    import BookingForm from "./features/bookings/BookingForm";
    import Navbar from "./components/Navbar";
 import { ProfileView } from "./features/profile/ProfileView";
+import EditProfileForm from "./features/profile/EditProfileForm";
 
 
 function App() {
@@ -124,7 +125,14 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
 
         <Route path="/profile" element={<ProfileView />} />
-        {/* other routes */}
+        <Route
+          path="/edit-profile"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "owner", "student"]}>
+              <EditProfileForm />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
