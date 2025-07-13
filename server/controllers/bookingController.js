@@ -1,52 +1,94 @@
 import prisma from "../prisma/client.js";
 
+const isValidDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return !isNaN(date);
+};
 
 export const createBooking = async (req, res) => {
   const { roomId, studentId, checkInDate, checkOutDate } = req.body;
 
+  if (!roomId || !studentId || !checkInDate || !checkOutDate) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  if (!isValidDate(checkInDate) || !isValidDate(checkOutDate)) {
+    return res.status(400).json({ error: "Invalid date format" });
+  }
+
+  if (new Date(checkInDate) >= new Date(checkOutDate)) {
+    return res
+      .status(400)
+      .json({ error: "Check-in date must be before check-out date" });
+  }
+
   try {
     const room = await prisma.room.findUnique({
       where: { id: roomId },
-      select: { available: true },
     });
 
-    if (!room || !room.available) {
-      return res.status(404).json({ error: "Room not found or not available" });
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
     }
 
-    const booking = await prisma.booking.create({
-      data: {
+    // Check for overlapping bookings
+    const overlappingBooking = await prisma.booking.findFirst({
+      where: {
         roomId,
-        studentId,
-        startDate: new Date(checkInDate),
-        endDate: new Date(checkOutDate),
+        OR: [
+          {
+            startDate: { lte: new Date(checkOutDate) },
+            endDate: { gte: new Date(checkInDate) },
+          },
+        ],
       },
     });
 
-    await prisma.room.update({
-      where: { id: roomId },
-      data: { available: false },
+    if (overlappingBooking) {
+      return res
+        .status(400)
+        .json({ error: "Room is already booked for the selected dates" });
+    }
+    const booking = await prisma.$transaction(async (tx) => {
+      const newBooking = await tx.booking.create({
+        data: {
+          roomId,
+          studentId,
+          startDate: new Date(checkInDate),
+          endDate: new Date(checkOutDate),
+          status: "pending",
+        },
+      });
+
+      await tx.room.update({
+        where: { id: roomId },
+        data: { available: false },
+      });
+
+      return newBooking;
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Booking created successfully",
       booking,
     });
   } catch (error) {
     console.error("Error creating booking:", error);
-    res.status(500).json({ error: "Failed to create booking" });
+    return res.status(500).json({ error: "Failed to create booking" });
   }
 };
 
 export const getBookingsByStudent = async (req, res) => {
   const { studentId } = req.params;
 
+  if (!studentId) {
+    return res.status(400).json({ error: "Missing student ID" });
+  }
+
   try {
     const bookings = await prisma.booking.findMany({
       where: { studentId },
-      include: {
-        room: true, // Include room details
-      },
+      include: { room: true },
     });
 
     if (bookings.length === 0) {
@@ -55,63 +97,67 @@ export const getBookingsByStudent = async (req, res) => {
         .json({ error: "No bookings found for this student" });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Bookings fetched successfully",
       bookings,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ error: "Failed to fetch bookings" });
+    return res.status(500).json({ error: "Failed to fetch bookings" });
   }
 };
 
 export const getBookingById = async (req, res) => {
   const { id } = req.params;
 
+  if (!id) {
+    return res.status(400).json({ error: "Missing booking ID" });
+  }
+
   try {
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: {
-        room: true, // Include room details
-      },
+      include: { room: true },
     });
 
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Booking fetched successfully",
       booking,
     });
   } catch (error) {
     console.error("Error fetching booking:", error);
-    res.status(500).json({ error: "Failed to fetch booking" });
+    return res.status(500).json({ error: "Failed to fetch booking" });
   }
 };
 
 export const getBookingsByRoomId = async (req, res) => {
   const { roomId } = req.params;
 
+  if (!roomId) {
+    return res.status(400).json({ error: "Missing room ID" });
+  }
+
   try {
     const bookings = await prisma.booking.findMany({
       where: { roomId },
-      include: {
-        room: true, // Include room details
-      },
+      include: { room: true },
     });
 
     if (bookings.length === 0) {
       return res.status(404).json({ error: "No bookings found for this room" });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Bookings fetched successfully",
       bookings,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ error: "Failed to fetch bookings" });
+    return res.status(500).json({ error: "Failed to fetch bookings" });
   }
 };
 
@@ -119,43 +165,37 @@ export const getBookingsByRoomId = async (req, res) => {
 export const cancelBooking = async (req, res) => {
   const { id } = req.params;
 
+  if (!id) {
+    return res.status(400).json({ error: "Missing booking ID" });
+  }
+
   try {
-    // Check if booking exists
     const booking = await prisma.booking.findUnique({
       where: { id },
-      select: { roomId: true },
     });
 
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    // Delete booking
     await prisma.booking.delete({
       where: { id },
     });
 
-    // Update room availability
-    await prisma.room.update({
-      where: { id: booking.roomId },
-      data: { available: true },
-    });
-
-    res.status(200).json({
-      message: "Booking cancelled successfully",
-    });
+    return res.status(200).json({ message: "Booking cancelled successfully" });
   } catch (error) {
     console.error("Error cancelling booking:", error);
-    res.status(500).json({ error: "Failed to cancel booking" });
+    return res.status(500).json({ error: "Failed to cancel booking" });
   }
 };
+
 
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       include: {
-        room: true, // Include room details
-        student: true, // Include student details
+        room: true,
+        student: true,
       },
     });
 
@@ -163,58 +203,78 @@ export const getAllBookings = async (req, res) => {
       return res.status(404).json({ error: "No bookings found" });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Bookings fetched successfully",
       bookings,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ error: "Failed to fetch bookings" });
+    return res.status(500).json({ error: "Failed to fetch bookings" });
   }
 };
-
-
 
 export const updateBooking = async (req, res) => {
   const { id } = req.params;
   const { roomId, studentId, checkInDate, checkOutDate, status } = req.body;
 
-  console.log("Update booking request body:", req.body);
+  if (!id) {
+    return res.status(400).json({ error: "Missing booking ID" });
+  }
 
   try {
-    // Check if booking exists
     const booking = await prisma.booking.findUnique({ where: { id } });
-
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    // Prepare update data only with fields provided in the request
     const updateData = {};
 
-    if (roomId) updateData.roomId = roomId;
-    if (studentId) updateData.studentId = studentId;
-    if (checkInDate) updateData.startDate = new Date(checkInDate);
-    if (checkOutDate) updateData.endDate = new Date(checkOutDate);
-    if (status) updateData.status = status;
+    // Prepare new values (falling back to existing)
+    const newRoomId = roomId || booking.roomId;
+    const newStart = checkInDate ? new Date(checkInDate) : booking.startDate;
+    const newEnd = checkOutDate ? new Date(checkOutDate) : booking.endDate;
 
-    // If no fields to update, return bad request
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ error: "No valid fields provided for update" });
+    // Validate dates
+    if (newStart >= newEnd) {
+      return res
+        .status(400)
+        .json({ error: "Check-in must be before check-out" });
     }
 
-    // Update booking record
+    // Check for overlapping bookings excluding this booking
+    const overlapping = await prisma.booking.findFirst({
+      where: {
+        roomId: newRoomId,
+        id: { not: id },
+        startDate: { lte: newEnd },
+        endDate: { gte: newStart },
+      },
+    });
+
+    if (overlapping) {
+      return res
+        .status(400)
+        .json({ error: "Room is already booked for the selected dates" });
+    }
+
+    // Apply updates
+    updateData.roomId = newRoomId;
+    updateData.startDate = newStart;
+    updateData.endDate = newEnd;
+    if (studentId) updateData.studentId = studentId;
+    if (status) updateData.status = status;
+
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: updateData,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Booking updated successfully",
       booking: updatedBooking,
     });
   } catch (error) {
     console.error("Error updating booking:", error);
-    res.status(500).json({ error: "Failed to update booking" });
+    return res.status(500).json({ error: "Failed to update booking" });
   }
 };

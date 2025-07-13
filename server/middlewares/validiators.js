@@ -42,7 +42,6 @@ export const validateBookingData = (req, res, next) => {
       !studentId ||
       !checkInDate ||
       !checkOutDate ||
-      !status ||
       isNaN(Date.parse(checkInDate)) ||
       isNaN(Date.parse(checkOutDate))
     ) {
