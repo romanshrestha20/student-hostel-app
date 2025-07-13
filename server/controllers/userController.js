@@ -107,14 +107,23 @@ export const updateUser = async (req, res) => {
     if (name) data.name = name;
 
     // Normalize email to lowercase and check uniqueness
-    if (email) {
-      email = email.toLowerCase();
-      const existingUser = await prisma.user.findFirst({ where: { email } });
-      if (existingUser && existingUser.id !== userId) {
-        return res.status(400).json({ error: "Email already in use" });
-      }
-      data.email = email;
+if (email) {
+  email = email.toLowerCase();
+
+  // Only run uniqueness check if email is different
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (currentUser && email !== currentUser.email) {
+    const existing = await prisma.user.findFirst({ where: { email } });
+    if (existing && existing.id !== userId) {
+      return res.status(400).json({ error: "Email already in use" });
     }
+  }
+
+  data.email = email;
+}
 
     if (password) {
       data.hashedPassword = await bcrypt.hash(password, 10);
