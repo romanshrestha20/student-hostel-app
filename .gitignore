@@ -100,3 +100,6 @@ temp/
 
 # Test output
 test-output/
+
+
+/server/uploads/

@@ -297,3 +297,50 @@ export const searchUsers = async (req, res) => {
     });
   }
 };
+
+
+export const uploadUserAvatar = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const loggedInUser = req.user;
+
+    // Authorization: only admin or the user themselves can upload
+    if (loggedInUser.role !== "admin" && loggedInUser.id !== userId) {
+      return res.status(403).json({
+        error: "You are not authorized to upload avatar for this user",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const avatar = `/uploads/${req.params.model}/${req.file.filename}`;
+
+    // Update user's avatar URL in the database
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { avatar },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true, // Include updatedAt for last modified info
+      },
+    });
+    res.status(200).json({
+      message: "Avatar uploaded successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error uploading avatar:", error);
+    res.status(500).json({
+      error: "Failed to upload avatar",
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
