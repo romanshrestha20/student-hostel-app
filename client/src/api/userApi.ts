@@ -82,7 +82,7 @@ export const uploadUserAvatar = async (userId: string, selectedFile: File): Prom
     });
 
     // The avatar URL relative path is here:
-    const avatarRelativePath = response.data.user.avatar;
+    const avatarRelativePath = response.data?.user?.avatar;
 
     // Prepend your backend URL if needed:
     const backendBaseUrl = "http://localhost:4000";
