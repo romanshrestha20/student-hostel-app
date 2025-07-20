@@ -1,47 +1,65 @@
-import React, { useState, useEffect, type ChangeEvent } from "react";
-import { uploadUserAvatar } from "../../api/userApi"; // adjust import path
+import React, {
+  useState,
+  useEffect,
+  type ChangeEvent,
+  type DragEvent,
+} from "react";
+import { uploadUserAvatar } from "../../api/userApi";
+import useProfile from "../../hooks/useProfile";
+import { Loader2 } from "lucide-react";
 
 interface AvatarUploadProps {
   userId: string;
-  initialAvatarUrl?: string;
-  backendBaseUrl: string;
-  onUploadSuccess?: (newAvatarUrl: string) => void; // optional callback
+  onUploadSuccess?: (newAvatarUrl: string) => void;
 }
 
 const AvatarUpload: React.FC<AvatarUploadProps> = ({
   userId,
-  initialAvatarUrl,
-  backendBaseUrl,
   onUploadSuccess,
 }) => {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    initialAvatarUrl || null
-  );
+  const { profile } = useProfile();
+  const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  // Update preview when file selected
   useEffect(() => {
-    if (!selectedFile) {
-      setPreviewUrl(null);
-      return;
+    if (profile?.avatar) {
+      setAvatarUrl(`${backendBaseUrl}${profile.avatar}`);
     }
+  }, [profile?.avatar]);
 
+  useEffect(() => {
+    if (!selectedFile) return setPreviewUrl(null);
     const objectUrl = URL.createObjectURL(selectedFile);
     setPreviewUrl(objectUrl);
-
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    } else {
-      setSelectedFile(null);
-    }
+    const file = event.target.files?.[0] ?? null;
+    setSelectedFile(file);
+    // Reset the input to allow re-uploading the same file
+    event.target.value = "";
   };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragActive(false);
+    const file = event.dataTransfer.files?.[0] ?? null;
+    setSelectedFile(file);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = () => setDragActive(false);
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -54,17 +72,14 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      formData.append("avatar", selectedFile);
 
-      // "user" is the folder/model name in your backend uploads path
-      const uploadedAvatarUrl = await uploadUserAvatar(userId, formData);
+      const uploadedPath = await uploadUserAvatar(userId, formData);
+      const fullUrl = `${backendBaseUrl}${uploadedPath}`;
 
-      // prepend backend base URL to get full URL for image src
-      setAvatarUrl(backendBaseUrl + uploadedAvatarUrl);
-      if (onUploadSuccess) {
-        onUploadSuccess(backendBaseUrl + uploadedAvatarUrl);
-      }
-      // reset selected file and preview
+      setAvatarUrl(fullUrl);
+      onUploadSuccess?.(fullUrl);
+
       setSelectedFile(null);
       setPreviewUrl(null);
     } catch (err) {
@@ -75,39 +90,45 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: 300 }}>
-      <div>
-        <img
-          src={
-            previewUrl || avatarUrl || `${backendBaseUrl}/default-avatar.png`
-          }
-          alt="User avatar"
-          style={{
-            width: 150,
-            height: 150,
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "1px solid #ccc",
-          }}
-        />
-      </div>
-
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        disabled={uploading}
+    <div className="flex flex-col items-center w-full gap-4">
+      <img
+        src={previewUrl || avatarUrl || `${backendBaseUrl}/default-avatar.png`}
+        alt="User avatar"
+        className="object-cover border border-gray-300 rounded-full w-36 h-36"
       />
+
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        className={`w-full max-w-sm p-4 text-center border-2 border-dashed rounded-lg cursor-pointer transition ${
+          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+        }`}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="avatarUploadInput"
+        />
+        <label htmlFor="avatarUploadInput" className="block text-gray-500 cursor-pointer">
+          {selectedFile
+            ? selectedFile.name
+            : "Click or drag an image here to upload"}
+        </label>
+      </div>
 
       <button
         onClick={handleUpload}
         disabled={uploading || !selectedFile}
-        style={{ marginTop: 8 }}
+        className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
       >
+        {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
         {uploading ? "Uploading..." : "Upload Avatar"}
       </button>
 
-      {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
 };
