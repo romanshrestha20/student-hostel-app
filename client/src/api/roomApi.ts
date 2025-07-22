@@ -6,6 +6,16 @@ function getErrorMessage(error: unknown): string {
   return String(error);
 }
 
+
+export type RoomCreateInput = {
+    roomType: Room['roomType'];
+    price: number;
+    capacity: number;
+    available: boolean;
+    amenities: string[];
+    hostelId: string;
+};
+
 // Get all rooms (optionally paginated)
 export const getRooms = async (hostelId: string, page = 1, limit = 10): Promise<Room[]> => {
   try {
@@ -54,7 +64,7 @@ export const getRoomsByType = async (roomType: string): Promise<Room[]> => {
 };
 
 // Create a new room
-export const createRoom = async (roomData: Omit<Room, 'id'>): Promise<Room> => {
+export const createRoom = async (roomData: RoomCreateInput): Promise<Room> => {
   try {
     const response = await api.post('/rooms', roomData);
     return response.data.room;
