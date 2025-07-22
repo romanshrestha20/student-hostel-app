@@ -17,6 +17,7 @@ import FavoriteList from "./features/favorites/FavoriteList";
    import Navbar from "./components/Navbar";
 import { ProfileView } from "./features/profile/ProfileView";
 import EditProfileForm from "./features/profile/EditProfileForm";
+import RoomCreateForm from "./features/rooms/RoomCreateForm";
 
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
 
         <Route
           path="/create-booking/:roomId"
