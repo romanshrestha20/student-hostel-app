@@ -3,12 +3,16 @@ import {
     getRoomById,
     createRoom,
     updateRoom,
-    deleteRoom
+    deleteRoom,
+
 } from "../api/roomApi.ts";
+import type { RoomCreateInput } from "../api/roomApi.ts";
 import { useState, useEffect } from "react";
 import type { Room } from "../types/room.ts";
+import { useAuth } from "../context/useAuth.ts";
 
-import { useAuth } from "../context/AuthContext.ts";
+
+
 
 export const useRoom = () => {
     const { user } = useAuth();
@@ -41,8 +45,8 @@ export const useRoom = () => {
         fetchRooms();
     }, []);
 
-    const createNewRoom = async (roomData: Omit<Room, 'id'>): Promise<Room | undefined> => {
-        if (!user || user.role !== 'admin') throw new Error("User not authorized");
+    const createNewRoom = async (roomData: RoomCreateInput): Promise<Room | undefined> => {
+        if (!user || user.role !== 'owner') throw new Error("User not authorized");
         try {
             const newRoom = await createRoom(roomData);
             setRooms((prev) => [...prev, newRoom]);

@@ -5,11 +5,15 @@ import RoomList from "../rooms/RoomList";
 import type { Hostel } from "../../types/hostel";
 import { useFavorite } from "../../hooks/useFavorite";
 import { useHostels } from "../../hooks/useHostels";
+import type { Room } from "../../types/room";
+import RoomCreateForm from "../rooms/RoomCreateForm";
+import Modal from "../../components/common/Modal";
 
 const HostelDetail = () => {
   const { user } = useAuth();
   const { hostelId } = useParams<{ hostelId: string }>();
   const [hostel, setHostel] = useState<Hostel | null>(null);
+  const [isRoomFormOpen, setIsRoomFormOpen] = useState(false);
 
   const { loading, error, getHostelDetails } = useHostels();
 
@@ -49,6 +53,12 @@ const HostelDetail = () => {
     } else {
       await addFavorite(hostelId);
     }
+  };
+
+  const handleRoomCreated = (newRoom: Room) => {
+    if (!hostel) return;
+    const updatedRooms = [...(hostel.rooms ?? []), newRoom];
+    setHostel({ ...hostel, rooms: updatedRooms });
   };
 
   if (loading)
@@ -95,7 +105,7 @@ const HostelDetail = () => {
             </ul>
           </div>
 
-          {user && (
+          {user?.role === "student" && (
             <div className="mt-6">
               <button
                 onClick={handleToggleFavorite}
@@ -109,6 +119,33 @@ const HostelDetail = () => {
                   ? "★ Remove from Favorites"
                   : "☆ Add to Favorites"}
               </button>
+            </div>
+          )}
+          {user?.role === "owner" && (
+            <div className="mt-6">
+              <h3 className="mb-4 text-xl font-semibold text-indigo-600">
+                Create New Room
+              </h3>
+              <button
+                onClick={() => setIsRoomFormOpen(true)}
+                className="px-4 py-2 text-white transition bg-indigo-600 rounded shadow-md hover:bg-indigo-700"
+              >
+                + Add Room
+              </button>
+
+              <Modal
+                open={isRoomFormOpen}
+                onClose={() => setIsRoomFormOpen(false)}
+              >
+                <RoomCreateForm
+                  hostelId={hostelId!}
+                  onClose={() => setIsRoomFormOpen(false)}
+                  onRoomCreated={(room) => {
+                    handleRoomCreated(room);
+                    setIsRoomFormOpen(false);
+                  }}
+                />
+              </Modal>
             </div>
           )}
         </div>
