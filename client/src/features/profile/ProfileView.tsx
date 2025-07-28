@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import useProfile from "../../hooks/useProfile";
 import { Link } from "react-router-dom";
 import AvatarUpload from "./AvatarUpload";
 
 export const ProfileView: React.FC = () => {
-  const [avatarUrl, setAvatarUrl] = React.useState<string | undefined>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
+
   const { profile, error } = useProfile();
 
   if (error) {
@@ -32,7 +34,7 @@ export const ProfileView: React.FC = () => {
       <div className="mb-4">
         <AvatarUpload
           userId={profile.id}
-          onUploadSuccess={(url) => setAvatarUrl(url)}
+          onUploadSuccess={(url) => setAvatarUrl(avatarUrl || url)}
         />
       </div>
 
@@ -67,7 +69,7 @@ export const ProfileView: React.FC = () => {
         </Link>
         <Link
           to="/delete-profile"
-          className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+          className="px-4 py-2 text-white bg-red-600 runded hover:bg-red-700"
         >
           Delete Profile
         </Link>

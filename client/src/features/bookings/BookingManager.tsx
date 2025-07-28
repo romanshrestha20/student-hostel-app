@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import  { useState, useMemo, useEffect } from "react";
 import useBooking from "../../hooks/useBooking";
 import type { Booking } from "../../types/booking";
 
@@ -47,14 +47,14 @@ const BookingManager = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Manage Bookings</h2>
+      <h2 className="mb-4 text-xl font-bold">Manage Bookings</h2>
       <div className="mb-4">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by student name or ID"
-          className="w-full border px-3 py-2 rounded shadow-sm"
+          className="w-full px-3 py-2 border rounded shadow-sm"
         />
       </div>
 
@@ -63,7 +63,7 @@ const BookingManager = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border px-2 py-1 rounded"
+          className="px-2 py-1 border rounded"
         >
           <option value="all">All Statuses</option>
           {uniqueStatuses.map((status) => (
@@ -76,7 +76,7 @@ const BookingManager = () => {
         <select
           value={roomTypeFilter}
           onChange={(e) => setRoomTypeFilter(e.target.value)}
-          className="border px-2 py-1 rounded"
+          className="px-2 py-1 border rounded"
         >
           <option value="all">All Room Types</option>
           {uniqueRoomTypes.map((type) => (
@@ -89,7 +89,7 @@ const BookingManager = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "startDate" | "endDate")}
-          className="border px-2 py-1 rounded"
+          className="px-2 py-1 border rounded"
         >
           <option value="startDate">Sort by Start Date</option>
           <option value="endDate">Sort by End Date</option>
@@ -102,7 +102,7 @@ const BookingManager = () => {
 
       <ul className="space-y-2">
         {filteredBookings.map((booking: Booking) => (
-          <li key={booking.id} className="border p-3 rounded shadow-sm">
+          <li key={booking.id} className="p-3 border rounded shadow-sm">
             <p>
               <strong>Room:</strong> {booking.room?.roomType || "Unknown"}
             </p>

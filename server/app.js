@@ -18,7 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: "*" })); // Allow all origins for CORS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,6 +35,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.get("/test-db", async (req, res) => {
   try {
     const now = await prisma.$queryRaw`SELECT NOW()`;
+    console.log(process.env.DATABASE_URL);
     res.json({ success: true, time: now[0].now });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -65,14 +66,15 @@ app.use((req, res) => {
 });
 
 // check if db connection is successful
-prisma.$connect()
-    .then(() => {  
-        console.log("✅ Connected to the database successfully");
-    })
-    .catch((error) => {
-        console.error("❌ Failed to connect to the database:", error);
-        process.exit(1); // Exit the process if DB connection fails
-    }
-);
+prisma
+  .$connect()
+  .then(() => {
+    console.log(process.env.DATABASE_URL);
+    console.log("✅ Connected to the database successfully");
+  })
+  .catch((error) => {
+    console.error("❌ Failed to connect to the database:", error);
+    process.exit(1); // Exit the process if DB connection fails
+  });
 
 export default app;

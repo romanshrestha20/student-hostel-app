@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import type { Room } from "../../types/room";
 import { getRoomById } from "../../api/roomApi";
@@ -29,20 +29,27 @@ const RoomDetail = () => {
   return (
     <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-2xl px-4 mx-auto">
-        {loading && <p className="text-center text-gray-500">Loading room details...</p>}
+        {loading && (
+          <p className="text-center text-gray-500">Loading room details...</p>
+        )}
         {error && <p className="text-center text-red-500">Error: {error}</p>}
         {!loading && room && (
           <div className="p-6 bg-white border border-gray-200 shadow-md rounded-xl">
-            <h2 className="mb-4 text-2xl font-bold text-indigo-700">Room Details</h2>
+            <h2 className="mb-4 text-2xl font-bold text-indigo-700">
+              Room Details
+            </h2>
 
             <p className="mb-2 text-gray-800">
-              <span className="font-semibold text-gray-900">Type:</span> {room.roomType}
+              <span className="font-semibold text-gray-900">Type:</span>{" "}
+              {room.roomType}
             </p>
             <p className="mb-2 text-gray-800">
-              <span className="font-semibold text-gray-900">Price:</span> ${room.price}
+              <span className="font-semibold text-gray-900">Price:</span> $
+              {room.price}
             </p>
             <p className="mb-2 text-gray-800">
-              <span className="font-semibold text-gray-900">Capacity:</span> {room.capacity}
+              <span className="font-semibold text-gray-900">Capacity:</span>{" "}
+              {room.capacity}
             </p>
 
             <p
@@ -58,7 +65,9 @@ const RoomDetail = () => {
                 Amenities: {room.amenities.join(", ")}
               </p>
             ) : (
-              <p className="text-sm italic text-gray-400">No amenities listed</p>
+              <p className="text-sm italic text-gray-400">
+                No amenities listed
+              </p>
             )}
 
             <div className="mt-6">

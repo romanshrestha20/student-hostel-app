@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorite } from "../../hooks/useFavorite";
@@ -21,8 +21,8 @@ const FavoriteList = () => {
 return (
     <>
         {user?.role === "student" && (
-            <div className="max-w-3xl mx-auto mt-6 p-4 border rounded shadow">
-                <h2 className="text-2xl font-bold mb-4">My Favorites</h2>
+            <div className="max-w-3xl p-4 mx-auto mt-6 border rounded shadow">
+                <h2 className="mb-4 text-2xl font-bold">My Favorites</h2>
                 <ul className="space-y-4">
                     {favorites.map((fav) => (
                         <li key={fav.id} className="p-4 border rounded shadow-sm">
@@ -34,7 +34,7 @@ return (
                             </Link>
                             <button
                                 onClick={() => removeFavorite(fav.id)}
-                                className="text-red-600 hover:underline text-sm"
+                                className="text-sm text-red-600 hover:underline"
                             >
                                 Remove from Favorites
                             </button>

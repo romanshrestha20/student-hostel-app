@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
     "axios": "^1.9.0",
+    "body-scroll-lock": "^4.0.0-beta.0",
     "dotenv": "^16.5.0",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/body-scroll-lock": "^3.1.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",

@@ -8,7 +8,7 @@ const Dashboard = () => {
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [location, setLocation] = React.useState("");
-  const [type, setType] = React.useState("");
+
 
   return (
     <>
@@ -25,10 +25,16 @@ const Dashboard = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        
+          <input
+            type="text"
+            placeholder="Location..."
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
         </div>
 
-        <HostelList searchTerm={searchTerm} location={location} type={type} />
+        <HostelList searchTerm={searchTerm} location={location}  />
       </div>
     </>
   );

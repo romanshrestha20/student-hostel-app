@@ -74,7 +74,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const formData = new FormData();
       formData.append("avatar", selectedFile);
 
-      const uploadedPath = await uploadUserAvatar(userId, formData);
+const uploadedPath = await uploadUserAvatar(userId, selectedFile);
+
       const fullUrl = `${backendBaseUrl}${uploadedPath}`;
 
       setAvatarUrl(fullUrl);
